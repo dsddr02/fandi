@@ -4,7 +4,7 @@ addEventListener('fetch', event => {
 
 async function handleRequest(request) {
   // 定义要代理的目标网站
-  const targetUrl = 'https://www.banzhu111111.com/'
+  const targetUrl = 'https://www.6yydstxt426.com/'
   
   // 获取请求的路径和查询参数
   const url = new URL(request.url)
