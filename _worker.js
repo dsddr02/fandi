@@ -1,17 +1,264 @@
-const a1='a4803ac0-98b3-44ae-a710-d66ba65b410d'
-import{connect as b1}from'cloudflare:sockets'
-let c1=''
-let d1=true
-let e1=true
-let f1=200
-export default{async fetch(g1){if(g1.headers.get('Upgrade')==='websocket'){const h1=new URL(g1.url);if(h1.searchParams.has('proxyip')){c1=h1.searchParams.get('proxyip')}else if(h1.pathname.toLowerCase().includes('/proxyip=')){c1=h1.pathname.toLowerCase().split('/proxyip=')[1]}return await i1(g1)}else{return new Response('Hello World!',{status:200})}}}
-async function i1(j1){const k1=new WebSocketPair();const[l1,m1]=Object.values(k1);m1.accept();m1.send(new Uint8Array([0,0]));n1(j1,m1);return new Response(null,{status:101,webSocket:l1})}
-async function n1(o1,p1){let q1;const r1=o1.headers.get('sec-websocket-protocol');if(!r1){q1=await new Promise(s1=>{p1.addEventListener('message',t1=>{s1(new Uint8Array(t1.data))},{once:true})})}else{q1=u1(r1)}v1(q1,p1)}
-function u1(w1){const x1=w1.replace(/-/g,'+').replace(/_/g,'/');const y1=atob(x1);return Uint8Array.from(y1,z1=>z1.charCodeAt(0))}
-async function v1(a2,b2,c2){let d2,e2,f2;try{const g2=a2[17];const h2=18+g2+1;const i2=new DataView(a2.buffer,h2,2).getUint16(0);if(i2===53){const j2=a2.slice(h2+9);const k2=await fetch('https://1.1.1.1/dns-query',{method:'POST',headers:{'content-type':'application/dns-message'},body:j2});const l2=await k2.arrayBuffer();const m2=new Uint8Array([(l2.byteLength>>8)&255,l2.byteLength&255]);b2.send(await new Blob([m2,l2,new TextEncoder().encode(w2())]).arrayBuffer());return}const n2=h2+2;d2=a2[n2];let o2=n2+1;switch(d2){case 1:f2=4;e2=a2.slice(o2,o2+f2).join('.');break;case 2:f2=a2[o2];o2+=1;e2=new TextDecoder().decode(a2.slice(o2,o2+f2));break;case 3:f2=16;const p2=[];const q2=new DataView(a2.buffer,o2,16);for(let r2=0;r2<8;r2++)p2.push(q2.getUint16(r2*2).toString(16));e2=p2.join(':');break;default:throw new Error('x')}if(a1&&x1(a2.slice(1,17))!==a1)throw new Error('y');if(e2.includes(atob('c3BlZWQuY2xvdWRmbGFyZS5jb20=')))throw new Error('z');try{if(d2===3){const s2=`[${e2}]`;c2=b1({hostname:s2,port:i2})}else{c2=b1({hostname:e2,port:i2})}await c2.opened}catch{let[t2,u2]=y2(c1);c2=b1({hostname:t2,port:u2})}await c2.opened;const v2=a2.slice(o2+f2);const w2=c2.writable.getWriter();if(v2.length>0){await w2.write(v2)}if(d1){const x2=c2.readable.getReader();z2(e2,w2,x2,b2)}else{a3(w2,c2,b2)}}catch(b3){return new Response(`err:${b3}`,{status:500})}}
-function x1(c3,d3=0){const e3=Array.from({length:256},(_,f3)=>(f3+256).toString(16).slice(1));const g3=[4,2,2,2,6];let h3=d3;const i3=g3.map(j3=>Array.from({length:j3},()=>e3[c3[h3++]]).join('')).join('-').toLowerCase();return i3}
-globalThis.j3=globalThis.j3??=new Map()
-function y2(k3){const l3=k3.toLowerCase();let m3=l3,n3=443;if(!l3||l3==''){m3='proxyip.fxxk.dedyn.io'}else if(l3.includes(']:')){n3=l3.split(']:')[1]||n3;m3=l3.split(']:')[0]+"]"||m3}else if(l3.split(':').length===2){n3=l3.split(':')[1]||n3;m3=l3.split(':')[0]||m3}if(l3.includes('.tp'))n3=l3.split('.tp')[1].split('.')[0]||n3;return[m3,n3]}
-async function a3(o3,p3,q3){q3.addEventListener('message',async r3=>{try{await o3.write(new Uint8Array(r3.data))}catch{}});p3.readable.pipeTo(new WritableStream({async write(s3){q3.send(s3)}}))}
-async function z2(t3,u3,v3,w3,x3=Promise.resolve(),y3=performance.now(),z3=0,a4=0,b4=false,c4=false){w3.addEventListener('message',d4=>x3=x3.then(async()=>{let e4=0;let f4=4096;const g4=new Uint8Array(d4.data);while(e4<g4.length){const h4=g4.slice(e4,e4+f4);try{await u3.write(h4)}catch{};a4+=h4.length;e4+=f4}a4+=g4.length}).catch());const i4=setInterval(async()=>{if(c4){clearInterval(i4)}else{x3=x3.then(async()=>await u3.write(new Uint8Array(0))).catch()}},30000);while(true){const{done:j4,value:k4}=await v3.read();if(k4&&k4.length>0){if(!b4&&k4.length>=4096){let l4=[];let m4=0;b4=true;l4.push(k4);m4+=k4.length;while(true){const{done:n4,value:o4}=await v3.read();if(n4)c4=true;if(o4&&o4.length>0){l4.push(o4);m4+=o4.length;if(o4.length<4096||m4>=524288){let p4=0;let q4=new Uint8Array(m4);for(const r4 of l4){q4.set(r4,p4);p4+=r4.length}x3=x3.then(()=>w3.send(q4)).catch();a4+=q4.length;b4=false;break}}}}else{x3=x3.then(()=>w3.send(k4)).catch();a4+=k4.length}if(e1&&(a4-z3)>2097152){x3=x3.then(async()=>await new Promise(s4=>setTimeout(s4,f1))).catch();z3=a4}}if(j4||c4){c4=true;break}}}
-function w2(a5=8,b5=24){const c5='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';const d5=a5+Math.floor(Math.random()*(b5-a5+1));const e5=[];const f5=new Uint8Array(d5);crypto.getRandomValues(f5);for(let g5=0;g5<d5;g5++){const h5=f5[g5]%c5.length;e5.push(c5[h5])}return e5.join('')}
+const a1 = 'a4803ac0-98b3-44ae-a710-d66ba65b410d'
+import { connect as b1 } from 'cloudflare:sockets'
+
+let c1 = ''
+let d1 = true
+let e1 = true
+let f1 = 200
+
+export default {
+  async fetch(g1) {
+    if (g1.headers.get('Upgrade') === 'websocket') {
+      const h1 = new URL(g1.url)
+      if (h1.searchParams.has('proxyip')) {
+        c1 = h1.searchParams.get('proxyip')
+      } else if (h1.pathname.toLowerCase().includes('/proxyip=')) {
+        c1 = h1.pathname.toLowerCase().split('/proxyip=')[1]
+      }
+      return await i1(g1)
+    } else {
+      return new Response('Hello World!', { status: 200 })
+    }
+  }
+}
+
+async function i1(j1) {
+  const k1 = new WebSocketPair()
+  const [l1, m1] = Object.values(k1)
+  m1.accept()
+  m1.send(new Uint8Array([0, 0]))
+  n1(j1, m1)
+  return new Response(null, { status: 101, webSocket: l1 })
+}
+
+async function n1(o1, p1) {
+  let q1
+  const r1 = o1.headers.get('sec-websocket-protocol')
+  if (!r1) {
+    q1 = await new Promise(s1 => {
+      p1.addEventListener('message', t1 => {
+        s1(new Uint8Array(t1.data))
+      }, { once: true })
+    })
+  } else {
+    q1 = u1(r1)
+  }
+  v1(q1, p1)
+}
+
+function u1(w1) {
+  const x1 = w1.replace(/-/g, '+').replace(/_/g, '/')
+  const y1 = atob(x1)
+  return Uint8Array.from(y1, z1 => z1.charCodeAt(0))
+}
+
+async function v1(a2, b2, c2) {
+  let d2, e2, f2
+  try {
+    const g2 = a2[17]
+    const h2 = 18 + g2 + 1
+    const i2 = new DataView(a2.buffer, h2, 2).getUint16(0)
+
+    if (i2 === 53) {
+      const j2 = a2.slice(h2 + 9)
+      const k2 = await fetch('https://1.1.1.1/dns-query', {
+        method: 'POST',
+        headers: { 'content-type': 'application/dns-message' },
+        body: j2
+      })
+      const l2 = await k2.arrayBuffer()
+      const m2 = new Uint8Array([(l2.byteLength >> 8) & 255, l2.byteLength & 255])
+      b2.send(await new Blob([m2, l2, new TextEncoder().encode(w2())]).arrayBuffer())
+      return
+    }
+
+    const n2 = h2 + 2
+    d2 = a2[n2]
+    let o2 = n2 + 1
+
+    switch (d2) {
+      case 1:
+        f2 = 4
+        e2 = a2.slice(o2, o2 + f2).join('.')
+        break
+      case 2:
+        f2 = a2[o2]
+        o2 += 1
+        e2 = new TextDecoder().decode(a2.slice(o2, o2 + f2))
+        break
+      case 3:
+        f2 = 16
+        const p2 = []
+        const q2 = new DataView(a2.buffer, o2, 16)
+        for (let r2 = 0; r2 < 8; r2++) p2.push(q2.getUint16(r2 * 2).toString(16))
+        e2 = p2.join(':')
+        break
+      default:
+        throw new Error('x')
+    }
+
+    if (a1 && x1(a2.slice(1, 17)) !== a1) throw new Error('y')
+    if (e2.includes(atob('c3BlZWQuY2xvdWRmbGFyZS5jb20='))) throw new Error('z')
+
+    try {
+      if (d2 === 3) {
+        const s2 = `[${e2}]`
+        c2 = b1({ hostname: s2, port: i2 })
+      } else {
+        c2 = b1({ hostname: e2, port: i2 })
+      }
+      await c2.opened
+    } catch {
+      let [t2, u2] = y2(c1)
+      c2 = b1({ hostname: t2, port: u2 })
+    }
+
+    await c2.opened
+    const v2 = a2.slice(o2 + f2)
+    const w2 = c2.writable.getWriter()
+    if (v2.length > 0) await w2.write(v2)
+
+    if (d1) {
+      const x2 = c2.readable.getReader()
+      z2(e2, w2, x2, b2)
+    } else {
+      a3(w2, c2, b2)
+    }
+  } catch (b3) {
+    return new Response(`err:${b3}`, { status: 500 })
+  }
+}
+
+function x1(c3, d3 = 0) {
+  const e3 = Array.from({ length: 256 }, (_, f3) => (f3 + 256).toString(16).slice(1))
+  const g3 = [4, 2, 2, 2, 6]
+  let h3 = d3
+  const i3 = g3.map(j3 =>
+    Array.from({ length: j3 }, () => e3[c3[h3++]]).join('')
+  ).join('-').toLowerCase()
+  return i3
+}
+
+globalThis.j3 = globalThis.j3 ??= new Map()
+
+function y2(k3) {
+  const l3 = k3.toLowerCase()
+  let m3 = l3, n3 = 443
+
+  if (!l3 || l3 == '') {
+    m3 = 'proxyip.fxxk.dedyn.io'
+  } else if (l3.includes(']:')) {
+    n3 = l3.split(']:')[1] || n3
+    m3 = l3.split(']:')[0] + "]" || m3
+  } else if (l3.split(':').length === 2) {
+    n3 = l3.split(':')[1] || n3
+    m3 = l3.split(':')[0] || m3
+  }
+
+  if (l3.includes('.tp')) n3 = l3.split('.tp')[1].split('.')[0] || n3
+
+  return [m3, n3]
+}
+
+async function a3(o3, p3, q3) {
+  q3.addEventListener('message', async r3 => {
+    try {
+      await o3.write(new Uint8Array(r3.data))
+    } catch { }
+  })
+
+  p3.readable.pipeTo(new WritableStream({
+    async write(s3) {
+      q3.send(s3)
+    }
+  }))
+}
+
+async function z2(t3, u3, v3, w3, x3 = Promise.resolve(), y3 = performance.now(), z3 = 0, a4 = 0, b4 = false, c4 = false) {
+  w3.addEventListener('message', d4 =>
+    x3 = x3.then(async () => {
+      let e4 = 0
+      let f4 = 4096
+      const g4 = new Uint8Array(d4.data)
+
+      while (e4 < g4.length) {
+        const h4 = g4.slice(e4, e4 + f4)
+        try { await u3.write(h4) } catch { }
+        a4 += h4.length
+        e4 += f4
+      }
+      a4 += g4.length
+    }).catch()
+  )
+
+  const i4 = setInterval(async () => {
+    if (c4) {
+      clearInterval(i4)
+    } else {
+      x3 = x3.then(async () => await u3.write(new Uint8Array(0))).catch()
+    }
+  }, 30000)
+
+  while (true) {
+    const { done: j4, value: k4 } = await v3.read()
+
+    if (k4 && k4.length > 0) {
+      if (!b4 && k4.length >= 4096) {
+        let l4 = []
+        let m4 = 0
+        b4 = true
+        l4.push(k4)
+        m4 += k4.length
+
+        while (true) {
+          const { done: n4, value: o4 } = await v3.read()
+          if (n4) c4 = true
+          if (o4 && o4.length > 0) {
+            l4.push(o4)
+            m4 += o4.length
+
+            if (o4.length < 4096 || m4 >= 524288) {
+              let p4 = 0
+              let q4 = new Uint8Array(m4)
+              for (const r4 of l4) {
+                q4.set(r4, p4)
+                p4 += r4.length
+              }
+              x3 = x3.then(() => w3.send(q4)).catch()
+              a4 += q4.length
+              b4 = false
+              break
+            }
+          }
+        }
+      } else {
+        x3 = x3.then(() => w3.send(k4)).catch()
+        a4 += k4.length
+      }
+
+      if (e1 && (a4 - z3) > 2097152) {
+        x3 = x3.then(async () => await new Promise(s4 => setTimeout(s4, f1))).catch()
+        z3 = a4
+      }
+    }
+
+    if (j4 || c4) {
+      c4 = true
+      break
+    }
+  }
+}
+
+function w2(a5 = 8, b5 = 24) {
+  const c5 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const d5 = a5 + Math.floor(Math.random() * (b5 - a5 + 1))
+  const e5 = []
+  const f5 = new Uint8Array(d5)
+
+  crypto.getRandomValues(f5)
+  for (let g5 = 0; g5 < d5; g5++) {
+    const h5 = f5[g5] % c5.length
+    e5.push(c5[h5])
+  }
+  return e5.join('')
+}
