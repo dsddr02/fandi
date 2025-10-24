@@ -1,16 +1,3 @@
-
-Skip to content
-eooce/auto-add-ssl-workers.js
-Last active 1 hour ago • Report abuse
-
-Clone this repository at &lt;script src=&quot;https://gist.github.com/eooce/d3549e80a67dd39e47a55f81bae6b802.js&quot;&gt;&lt;/script&gt;
-
-Code
-Revisions 3
-Stars 41
-Forks 49
-auto-add-ssl-workers
-auto-add-ssl-workers.js
 export default {
   async fetch(request, env, ctx) {
       const url = new URL(request.url);
@@ -197,6 +184,7 @@ function getHTML() {
       gap: 15px;
       margin-bottom: 25px;
    }
+
     .register-btn {
         flex: 1;
         display: block;
@@ -248,6 +236,7 @@ function getHTML() {
     .ca-select-style {
         height: 48px;
     }
+
     input[type="text"]:focus, 
     input[type="email"]:focus,
     textarea:focus,
@@ -286,6 +275,7 @@ function getHTML() {
         align-items: center;
         box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.15);
     }
+
     .info-box .btn#generate-btn { margin-top: 15px; }
     .info-box .btn#generate-btn i { position: relative; top: 1px; }
     
@@ -355,6 +345,7 @@ function getHTML() {
         line-height: 1.5;
         color: #34495e;
     }
+
     .footer {
       text-align: center;
       margin-top: 20px;
@@ -374,6 +365,7 @@ function getHTML() {
       color: inherit; 
       display: inline-block;
     }
+
     /* 响应式调整：在小屏幕上变回单列布局 */
     @media (max-width: 600px) {
       .form-row { flex-direction: column; gap: 0; }
@@ -424,6 +416,7 @@ function getHTML() {
               </select>
           </div>
       </div>
+
       <button type="submit" class="btn" id="submit-btn">
           <div class="spinner" id="spinner"></div>
           <span id="btn-text"><i class="fas fa-plus-circle"></i> 添加 SSL 证书</span>
@@ -431,6 +424,7 @@ function getHTML() {
     </form>
     
     <div class="result" id="result-message"></div>
+
     <div class="info-box">
       <h2>IP6.ARPA 域名生成工具</h2>
       <div class="form-row" style="margin-top: 15px;">
@@ -446,11 +440,13 @@ function getHTML() {
         </div>
       </div>
     </div>    
+
     <div class="info-box">
       <h2>API GET 调用示例</h2>
       <p style="font-size: 14px; margin-bottom: 10px;">证书颁发机构 (ca) 支持：<code>ssl_com</code>、<code>lets_encrypt</code>、<code>google</code>、<code>sectigo</code>。<strong>注意：ip6.arpa 域名通常仅支持 <code>ssl_com</code>。</strong></p>
       <pre style="background: rgba(255, 255, 255, 0.7); padding: 10px; border-radius: 6px; font-size: 14px; overflow-x: auto; color: #000;">https://worker地址/?zoneId=...&email=...&apikey=...&enabled=true&ca=ssl_com</pre>
     </div>
+
     <div class="footer">
       <i class="fas fa-copyright"></i> Copyright 2025 <span class="separator">|</span>
       <a href="https://gist.github.com/eooce/d3549e80a67dd39e47a55f81bae6b802" target="_blank"><i class="fab fa-github"></i> GitHub源代码</a> <span class="separator">|</span>
@@ -458,31 +454,40 @@ function getHTML() {
       <p style="margin-top: 10px;">此站点中api key仅用于请求,不记录,如有疑问,可自行在cloudflare workers部署</p>
     </div>
   </div>
+
   <script>
   // ==========================================================
   // 域名生成逻辑 (支持随机子域名生成)
   // ==========================================================
+
   // 辅助函数：将缩写的 IPv6 地址展开为完整的 32 位十六进制字符串
   function expandIpv6(ipv6) {
       ipv6 = ipv6.toLowerCase();
+
       // 检查是否有 '::' 缩写
       if (!ipv6.includes('::')) {
           return ipv6.split(':').map((block) => block.padStart(4, '0')).join('');
       }
+
       const parts = ipv6.split('::');
       const leftBlocks = parts[0].split(':').filter(Boolean);
       const rightBlocks = parts[1].split(':').filter(Boolean);
+
       const existingBlocksCount = leftBlocks.length + rightBlocks.length;
       const zeroBlocksCount = 8 - existingBlocksCount;
+
       if (zeroBlocksCount < 0) {
           throw new Error('IPv6 地址块过多，格式错误。');
       }
+
       const zeroPadding = Array(zeroBlocksCount).fill('0000').join('');
+
       // 填充左侧和右侧的块，然后合并
       const fullLeft = leftBlocks.map((block) => block.padStart(4, '0')).join('');
       const fullRight = rightBlocks.map((block) => block.padStart(4, '0')).join('');
       return fullLeft + zeroPadding + fullRight;
   }
+
   // 辅助函数：生成指定长度的随机十六进制字符串
   function randomHex(length) {
       let result = '';
@@ -492,26 +497,33 @@ function getHTML() {
       }
       return result;
   }
+
   // 生成 ipv6 反向根域名
   function generateArpaRootDomain(cidr) {
       const parts = cidr.split('/');
+
       if (parts.length !== 2) {
           throw new Error('CIDR 格式不正确，请使用 IP/前缀长度 格式。');
       }
+
       const ipv6 = parts[0].trim();
       const prefixLength = parseInt(parts[1], 10);
+
       if (isNaN(prefixLength) || prefixLength < 0 || prefixLength > 128 || prefixLength % 4 !== 0) {
           throw new Error('前缀长度无效，必须是 4 的倍数 (例如: /32, /48, /64)。');
       }
+
       const fullHex = expandIpv6(ipv6); // 获取完整的 32 字符十六进制地址
       const hexCharsInPrefix = prefixLength / 4; // 截取固定的网络前缀部分
       const networkPrefix = fullHex.substring(0, hexCharsInPrefix);
       const reversed = networkPrefix.split('').reverse().join('.'); // 反转并用 '.' 分隔
       return reversed + '.ip6.arpa'; // 拼接后缀
   }
+
   // 生成随机前缀域名
   function generateRandomPrefixDomains(baseArpaDomain) {
       const domains = [baseArpaDomain]; // 根域名
+
       for (let i = 0; i < 3; i++) {
           // 生成 1 到 4 位长的随机十六进制字符串
           const randomLength = Math.floor(Math.random() * 4) + 1; // 1 to 4
@@ -520,9 +532,11 @@ function getHTML() {
       }
       return domains;
   }
+
   // ==========================================================
   // DOM 交互逻辑
   // ==========================================================
+
   // 辅助函数：从本地存储加载 CIDR
   function loadSavedCidr() {
       const savedCidr = localStorage.getItem('ipv6Cidr');
@@ -530,14 +544,17 @@ function getHTML() {
           document.getElementById('ipv6-cidr').value = savedCidr;
       }
   }
+
   // 辅助函数：保存 CIDR 到本地存储
   function saveCidr(cidr) {
       localStorage.setItem('ipv6Cidr', cidr);
   }
+
   // 辅助函数：显示字段错误
   function showError(fieldId, message) {
       const field = document.getElementById(fieldId);
       const errorElement = document.getElementById(fieldId + '-error');
+
       field.classList.add('error');
       errorElement.textContent = message;
       errorElement.style.display = 'block';
@@ -545,6 +562,7 @@ function getHTML() {
           field.focus();
       }
   }
+
   // 辅助函数：重置所有错误状态
   function resetErrors() {
       const errorFields = document.querySelectorAll('.error');
@@ -556,6 +574,7 @@ function getHTML() {
           message.style.display = 'none';
       });
   }
+
   // 辅助函数：显示操作结果
   function showResult(message, type) {
       const resultElement = document.getElementById('result-message');
@@ -565,6 +584,7 @@ function getHTML() {
       resultElement.style.display = 'block';
       resultElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+
   // 辅助函数：执行复制操作 (仅使用 Clipboard API)
   async function copyTextToClipboard(text) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -580,16 +600,19 @@ function getHTML() {
           return false;
       }
   }
+
   // ==========================================================
   // 页面初始化和事件监听
   // ==========================================================
   document.addEventListener('DOMContentLoaded', function () {
       // 1. 加载保存的 CIDR
       loadSavedCidr();
+
       // 2. 监听 CIDR 输入，实时保存
       document.getElementById('ipv6-cidr').addEventListener('input', function (e) {
           saveCidr(e.target.value.trim());
       });
+
       // 3. 事件监听: IPv6 域名生成 (调用随机生成函数)
       document.getElementById('generate-btn').addEventListener('click', async function () {
           resetErrors();
@@ -597,16 +620,19 @@ function getHTML() {
           const domainOutput = document.getElementById('generated-domain');
           const cidr = cidrInput.value.trim();
           domainOutput.value = '';
+
           if (!cidr) {
               showError('ipv6-cidr', '请输入 IPv6 CIDR 地址。');
               return;
           }
+
           try {
               const rootDomain = generateArpaRootDomain(cidr); // 生成 ARPA 根域名
               const generatedDomains = generateRandomPrefixDomains(rootDomain); // 生成包含根域名和随机前缀的 4 个域名列表
               const resultText = generatedDomains.join('\\n'); // 将所有域名格式化成多行文本
               domainOutput.value = resultText; // 将所有 4 个域名赋值给 textarea
               const copySuccess = await copyTextToClipboard(resultText); // 复制操作 (复制所有 4 个域名)
+
               let resultMessage = 'IP6.ARPA 域名生成成功！共生成 4 个域名。';
               if (copySuccess) {
                   resultMessage += '所有域名已自动复制到剪贴板。';
@@ -620,16 +646,20 @@ function getHTML() {
               showResult('生成失败: ' + (error.message || '未知错误'), 'error');
           }
         });
+
       // 4. 事件监听: Cloudflare SSL 提交
       document.getElementById('ssl-form').addEventListener('submit', async function (e) {
           e.preventDefault();
+
           // 获取输入值
           const email = document.getElementById('email').value.trim();
           const zoneId = document.getElementById('zone-id').value.trim();
           const apikey = document.getElementById('api-key').value.trim();
           const caSelect = document.getElementById('ca-select').value;
+
           // 重置错误状态
           resetErrors();
+
           // 验证输入
           let isValid = true;
           if (!email) {
@@ -645,10 +675,12 @@ function getHTML() {
               isValid = false;
           }
           if (!isValid) return;
+
           // 显示加载状态
           document.getElementById('spinner').style.display = 'block';
           document.getElementById('btn-text').textContent = '添加中...';
           document.getElementById('submit-btn').disabled = true;
+
           try {
               // 发送请求到 Worker API
               const response = await fetch('/api/add-ssl', {
@@ -664,7 +696,9 @@ function getHTML() {
                       ca: caSelect,
                   }),
               });
+
               const data = await response.json();
+
               // 显示结果
               if (data.success) {
                   showResult('证书添加成功, 请10分钟后在Cloudflare该域名里检查SSL/TLS证书', 'success');
@@ -692,18 +726,3 @@ function getHTML() {
 </body>
 </html>`;
 }
-Comment
-
-Leave a comment
-Footer
-© 2025 GitHub, Inc.
-Footer navigation
-
-    Terms
-    Privacy
-    Security
-    Status
-    Community
-    Docs
-    Contact
-
